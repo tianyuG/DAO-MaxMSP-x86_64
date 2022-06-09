@@ -2,13 +2,10 @@
 #define cleaner_common_h
 
 /* Header files required by Max and Pd ****************************************/
-#ifdef TARGET_IS_MAX
 #include "ext.h"
 #include "z_dsp.h"
 #include "ext_obex.h"
-#elif TARGET_IS_PD
-#include "m_pd.h"
-#endif
+
 
 /* The global variables *******************************************************/
 #define MINIMUM_THRESHOLD 0.0
@@ -21,20 +18,15 @@
 
 /* The object structure *******************************************************/
 typedef struct _cleaner {
-#ifdef TARGET_IS_MAX
     t_pxobject obj;
-#elif TARGET_IS_PD
-    t_object obj;
-    t_float x_f;
-#endif
 
-    float fs;
+    double fs;
     
-    float threshold_value;
-    float attenuation_value;
+    double threshold_value;
+    double attenuation_value;
 
-    short threshold_connected;
-    short attenuation_connected;
+    int threshold_connected;
+    int attenuation_connected;
 } t_cleaner;
 
 /* The arguments/inlets/outlets/vectors indexes *******************************/
@@ -52,8 +44,17 @@ static t_class *cleaner_class;
 void *cleaner_common_new(t_cleaner *x, short argc, t_atom *argv);
 void cleaner_free(t_cleaner *x);
 
-void cleaner_dsp(t_cleaner *x, t_signal **sp, short *count);
-t_int *cleaner_perform(t_int *w);
+void cleaner_dsp(t_cleaner *x, t_object *dsp64,
+                   short *count,
+                   double samplerate,
+                   long maxvectorsize,
+                   long flags);
+void cleaner_perform(t_cleaner *x, t_object *dsp64,
+                       double **ins, long numins,
+                       double **outs, long numouts,
+                       long vectorsize,
+                       long flags,
+                       void *userparams);
 
 /******************************************************************************/
 

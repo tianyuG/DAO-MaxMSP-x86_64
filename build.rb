@@ -1,54 +1,25 @@
 #!/usr/bin/env ruby
 
-#*******************************************************************************
-
-$mac = (Object::RUBY_PLATFORM =~ /darwin/) ? true : false
-$windows = (Object::RUBY_PLATFORM =~ /mingw/) ? true : false
-$linux = (Object::RUBY_PLATFORM =~ /linux/) ? true : false
-$noargs = (ARGV.length == 0)
-
 puts " "
 
 def build_externals(projects_folder)
     Dir.foreach projects_folder do |filename|
-
-        if $mac && filename.match(/.*mk/) && ARGV[0] == "BBB"
-            puts "building using make for BBB+Bela: #{projects_folder}/#{filename}"
-            `make -f "#{projects_folder}/#{filename}" BBB=1 2>&1`
-        end
-
-        if $mac && filename.match(/.*xcodeproj/)
+        if filename.match(/.*xcodeproj/)
             puts "building using xcodebuild: #{projects_folder}/#{filename}"
 
             result =
                 `cd "#{projects_folder}";
-                xcodebuild -scheme Max -configuration Release 2>&1;
-                xcodebuild -scheme Pd ARCHS=i386 ONLY_ACTIVE_ARCH=NO -configuration Release 2>&1`
+                xcodebuild -scheme Max -arch x86_64 -configuration Release 2>&1`
 
             if result.match(/\*\* BUILD SUCCEEDED \*\*/)
                 puts "(success)"
             else
-                puts "(fail)"
+            	if (ARGV[0] == "-V" || ARGV[0] == "--verbose")
+            		puts result
+            	else
+                	puts "(fail)"
+                end
             end
-
-        elsif $windows && filename.match(/.*\.vcxproj/) && !filename.match(/.*\.vcxproj\..*/)
-            puts "building using msbuild: #{projects_folder}/#{filename}"
-
-            result =
-                `cd "#{projects_folder}" &\
-                msbuild /t:Rebuild /p:Platform=x64;Configuration="MaxRelease" &\
-                msbuild /t:Rebuild /p:Platform=Win32;Configuration="MaxRelease" &\
-                msbuild /t:Rebuild /p:Platform=Win32;Configuration="PdRelease"`
-
-            if result.match(/(0 error|up\-to\-date|Build succeeded\.)/)
-                puts "(success)"
-            else
-                puts "(fail)"
-            end
-
-        elsif $linux && filename.match(/.*mk/)
-            puts "building using make for linux desktop: #{projects_folder}/#{filename}"
-            `make -f "#{projects_folder}/#{filename}" 2>&1`
         end
 
         if File.directory?("#{projects_folder}/#{filename}") &&
@@ -121,10 +92,6 @@ def copy_files(projects_folder, externals_folder)
     copy_external("#{projects_folder}/**/*.wav",         "#{externals_folder}/Max")
     copy_external("#{projects_folder}/**/*.txt",         "#{externals_folder}/Max")
     copy_external("#{projects_folder}/**/*.js",          "#{externals_folder}/Max")
-
-    copy_external("#{projects_folder}/**/*.pd",          "#{externals_folder}/Pd")
-    copy_external("#{projects_folder}/**/*.wav",         "#{externals_folder}/Pd")
-    copy_external("#{projects_folder}/**/*.txt",         "#{externals_folder}/Pd")
     puts " "
 
     # move externals
@@ -132,14 +99,6 @@ def copy_files(projects_folder, externals_folder)
     move_external("#{projects_folder}/**/*.mxe",         "#{externals_folder}/Max")
     move_external("#{projects_folder}/**/*.mxe64",       "#{externals_folder}/Max")
 
-    move_external("#{projects_folder}/**/*.pd_darwin",   "#{externals_folder}/Pd")
-    move_external("#{projects_folder}/**/*.pd_linux",    "#{externals_folder}/Pd")
-    move_external("#{projects_folder}/**/*.dll",         "#{externals_folder}/Pd")
-
-    # remove pd patch for bela if not built for it
-    if $noargs
-        FileUtils.rm Dir.glob("#{externals_folder}/Pd/**/_main.pd")
-    end
 end
 
 def cleanup(projects_folder)

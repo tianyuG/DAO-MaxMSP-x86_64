@@ -2,7 +2,7 @@
 
 // User defined
 COMMON = ../../_COMMON_
-MAXSDK = ../../_SDK_/max-sdk/source/c74support
+MAXSDK = ../../_SDK_/max-sdk/source/max-sdk-base/c74support
 MAXINCLUDES = $(MAXSDK)/max-includes
 MSPINCLUDES = $(MAXSDK)/msp-includes
 JITINCLUDES = $(MAXSDK)/jit-includes
@@ -11,7 +11,7 @@ PRODUCTS = ../Products
 ////////////////////////////////////////////////////////////////////////////////
 
 // Architectures
-ARCHS = i386 x86_64
+ARCHS = x86_64
 ONLY_ACTIVE_ARCH = NO
 
 // Deployment
